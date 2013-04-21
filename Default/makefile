@@ -43,7 +43,7 @@ all: SimPiMIPS
 SimPiMIPS: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: Cross G++ Linker'
-	g++  -o "SimPiMIPS" $(OBJS) $(USER_OBJS) $(LIBS)
+	g++  -o "SimPiMIPS" $(OBJS) $(USER_OBJS) $(LIBS)`wx-config --libs`
 	@echo 'Finished building target: $@'
 	@echo ' '
 

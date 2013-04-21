@@ -1,5 +1,5 @@
-#ifndef Stage_H_
-#define Stage_H_
+#ifndef STAGE_H_
+#define STAGE_H_
 
 #include <string>
 #include "typedefs.h"
@@ -75,4 +75,4 @@ public:
 	explicit WB(CPU* cpu);
 };
 
-#endif /* Stage_H_ */
+#endif /* STAGE_H_ */

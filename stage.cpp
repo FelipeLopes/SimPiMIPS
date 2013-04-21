@@ -15,7 +15,7 @@ Stage::~Stage(){
 }
 
 std::string Stage::getState(){
-	if (!executed) return "Bubble";
+	if (!executed) return "stall";
 	else return stateString;
 }
 
@@ -139,16 +139,16 @@ void IDRF::exec() {
 	case 7: //mul
 	case 9: //sub
 	case 10://sw
-		readSuccessful = !cpu->regIsDirty[rs] && !cpu->regIsDirty[rt];
+		readSuccessful = !cpu->isRegDirty(rs) && !cpu->isRegDirty(rt);
 		break;
 	case 1: //addi
 	case 6: //lw
-		readSuccessful = !cpu->regIsDirty[rs];
+		readSuccessful = !cpu->isRegDirty(rs);
 		break;
 	case 2: //beq
 	case 3: //ble
 	case 4: //bne
-		readSuccessful = !cpu->regIsDirty[rs] && !cpu->regIsDirty[rt] && !cpu->pcIsDirty;
+		readSuccessful = !cpu->isRegDirty(rs) && !cpu->isRegDirty(rt) && !cpu->pcIsDirty;
 		break;
 	default: //jmp, nop
 		readSuccessful = true;
@@ -164,11 +164,13 @@ void IDRF::exec() {
 	case 0: //add
 	case 7: //mul
 	case 9: //sub
-		cpu->regIsDirtyNext[rd] = true;
+		cpu->setRegDirty(rd,CPU::REGISTER_WRITE);
 		break;
 	case 1: //addi
+		cpu->setRegDirty(rt,CPU::REGISTER_WRITE);
+		break;
 	case 6: //lw
-		cpu->regIsDirtyNext[rt] = true;
+		cpu->setRegDirty(rt,CPU::MEMORY_WRITE);
 		break;
 	case 2: //beq
 	case 3: //ble
@@ -183,8 +185,8 @@ void IDRF::exec() {
 	switch (format) {
 	case 'R':
 	case 'I':
-		valRs = cpu->reg->read(rs);
-		valRt = cpu->reg->read(rt);
+		valRs = cpu->getReg(rs);
+		valRt = cpu->getReg(rt);
 		valPC = cpu->reg->readPC();
 		break;
 	case 'J':
@@ -335,23 +337,21 @@ void WB::exec() {
 	case 7: //mul
 	case 9: //sub
 		reg->write(dem->rd,dem->result);
-		cpu->regIsDirtyNext[dem->rd] = false;
 		break;
 	case 1: //addi
 	case 6: //lw
 		reg->write(dem->rt,dem->result);
-		cpu->regIsDirtyNext[dem->rt] = false;
 		break;
 	case 2: //beq
 	case 3: //ble
 	case 4: //bne
 		if (dem->cond) reg->writePC(dem->result);
 		else reg->writePC(dem->valPC);
-		cpu->pcIsDirtyNext = false;
+		cpu->pcIsDirtyNext=false;
 		break;
 	case 5: //jmp
 		reg->writePC(dem->result);
-		cpu->pcIsDirtyNext = false;
+		cpu->pcIsDirtyNext=false;
 		break;
 	case 8: //nop
 	case 10://sw
