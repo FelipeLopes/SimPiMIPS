@@ -60,3 +60,10 @@ void Presenter::advanceCPU(){
 	cpu->exec();
 	populateWindow();
 }
+
+void Presenter::getInputFile(){
+	 wxFileDialog openFileDialog(mainWindow);
+	 if (openFileDialog.ShowModal() == wxID_CANCEL)	return;
+	 wxString str = openFileDialog.GetPath();
+	 mainWindow->inputFileBox->WriteText(str);
+}

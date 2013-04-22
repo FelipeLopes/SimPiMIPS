@@ -64,12 +64,14 @@ bool CPU::isPcDirty(){
 		for (int i=1; i<4; i++) if (dirtyRegs[i].first==-1) return true;
 		return false;
 	}
-	for (int i=1; i<3; i++) if (dirtyRegs[i].first==-1) return true;
+	if (dirtyRegs[1].first==-1) return true;
 	return false;
 }
 
 u32 CPU::getPc(){
-	if (usesBypassing && dirtyRegs[3].first==-1) return dem->valPC;
+	if (!usesBypassing) return reg->readPC();
+	if (usesBypassing && dirtyRegs[1].first==-1) return ex->result;
+	if (usesBypassing && dirtyRegs[2].first==-1) return dem->result;
 	return reg->readPC();
 }
 

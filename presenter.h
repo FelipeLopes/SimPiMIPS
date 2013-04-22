@@ -11,6 +11,7 @@ public:
 	Presenter(MainWindow* mainWindow, CPU* cpu);
 	void populateWindow();
 	void advanceCPU();
+	void getInputFile();
 private:
 	MainWindow* mainWindow;
 	CPU* cpu;

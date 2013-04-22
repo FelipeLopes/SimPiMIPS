@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <cassert>
 #include <string>
 #include <sstream>
@@ -29,9 +30,8 @@ void IF::exec() {
 		this->isBlocked=true;
 		return;
 	}
-
-	currentInst = cpu->instMem->read(cpu->reg->readPC());
-	cpu->reg->writePC(cpu->reg->readPC() + 4);
+	currentInst = cpu->instMem->read(cpu->getPc());
+	cpu->reg->writePC(cpu->getPc() + 4);
 
 	this->isBlocked = false;
 	cpu->idrf->isIdle=false;
@@ -215,7 +215,7 @@ void EX::exec() {
 	rd = idrf->rd;
 	rt = idrf->rt;
 	valRt = idrf->valRt;
-	valPC = idrf->valPC;
+	bool cond;
 
 	if(this->isIdle) return;
 
@@ -242,17 +242,20 @@ void EX::exec() {
 	case 2: //beq
 		cond = (static_cast<i32>(idrf->valRs) ==
 				static_cast<i32>(idrf->valRt));
-		result = idrf->valPC + idrf->immed;
+		if (cond) result = idrf->valPC + idrf->immed;
+		else result = idrf->valPC;
 		break;
 	case 3: //ble
 		cond = (static_cast<i32>(idrf->valRs) <=
 				static_cast<i32>(idrf->valRt));
-		result = idrf->immed;
+		if (cond) result = idrf->immed;
+		else result = idrf->valPC;
 		break;
 	case 4: //bne
 		cond = (static_cast<i32>(idrf->valRs) !=
 				static_cast<i32>(idrf->valRt));
-		result = idrf->valPC + idrf->immed;
+		if (cond) result = idrf->valPC + idrf->immed;
+		else result = idrf->valPC;
 		break;
 	case 5: //jmp
 		result = idrf->targetAddr;
@@ -289,13 +292,10 @@ DEM::DEM(CPU* cpu):Stage(cpu){
 void DEM::exec() {
 	executed=false;
 	EX* ex = cpu->ex;
-	Memory* mem = cpu->dataMem;
 	rd = ex->rd;
 	rt = ex->rt;
 	result = ex->result;
-	cond = ex->cond;
 	command = ex->command;
-	valPC = ex->valPC;
 
 	if (this->isIdle) return;
 
@@ -345,11 +345,8 @@ void WB::exec() {
 	case 2: //beq
 	case 3: //ble
 	case 4: //bne
-		if (dem->cond) reg->writePC(dem->result);
-		else reg->writePC(dem->valPC);
-		break;
 	case 5: //jmp
-		reg->writePC(dem->result);
+		if (!cpu->usesBypassing) reg->writePC(dem->result);
 		break;
 	case 8: //nop
 	case 10://sw

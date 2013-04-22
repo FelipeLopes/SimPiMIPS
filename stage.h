@@ -49,10 +49,9 @@ public:
 	int ticksToFinish;
 public:
 	u32 result;
-	bool cond;
 	std::string command;
 	int rd,rt;
-	u32 valRt,valPC;
+	u32 valRt;
 	void exec();
 
 	explicit EX(CPU* cpu);
@@ -61,8 +60,7 @@ public:
 class DEM: public Stage{
 public:
 	int rd,rt;
-	u32 result,valPC;
-	bool cond;
+	u32 result;
 	std::string command;
 	void exec();
 

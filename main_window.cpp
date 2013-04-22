@@ -2,6 +2,7 @@
 
 BEGIN_EVENT_TABLE(MainWindow,wxFrame)
 	EVT_BUTTON(MainWindow::ID_ADVANCE_BUTTON,MainWindow::onClickAdvance)
+	EVT_BUTTON(MainWindow::ID_INPUT_FILE_BROWSE_BUTTON,MainWindow::onClickInputFileBrowse)
 END_EVENT_TABLE()
 
 MainWindow::MainWindow(CPU* cpu):
@@ -16,7 +17,10 @@ MainWindow::MainWindow(CPU* cpu):
 	accessDisplay->SetColSize(0,60);
 	accessDisplay->SetColSize(1,120);
 	accessDisplay->SetColSize(2,120);
-	wxButton* advanceButton = new wxButton(this,ID_ADVANCE_BUTTON,_("Advance"),wxPoint(0,100));
+	advanceButton = new wxButton(this,ID_ADVANCE_BUTTON,_("Advance"),wxPoint(0,100));
+	inputFileBrowseButton = new wxButton(this,ID_INPUT_FILE_BROWSE_BUTTON,_("Browse..."),wxPoint(300,550));
+	inputFileBox = new wxTextCtrl(this, ID_INPUT_FILE_BOX,
+	      wxEmptyString,wxPoint(0,550), wxSize(300,30));
 	presenter = new Presenter(this,this->cpu);
 }
 
@@ -24,6 +28,15 @@ void MainWindow::onClickAdvance(wxCommandEvent& event){
 	presenter->advanceCPU();
 }
 
+void MainWindow::onClickInputFileBrowse(wxCommandEvent& event){
+	presenter->getInputFile();
+}
+
 MainWindow::~MainWindow(){
+	delete pipelineDisplay;
+	delete registerDisplay;
+	delete miscDisplay;
+	delete accessDisplay;
+	delete advanceButton;
 	delete presenter;
 }
