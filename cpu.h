@@ -2,6 +2,7 @@
 #define CPU_H_
 
 #include <string>
+#include <deque>
 #include <utility>
 #include <map>
 #include "typedefs.h"
@@ -21,6 +22,7 @@ class CPU{
 	};
 private:
 	const bool usesBypassing;
+	std::deque<std::pair<std::pair<std::pair<u32,char>,u32>,int> > accessQueue;
 	std::pair<int,WriteType> dirtyRegs[4];
 	std::map<std::string,int> idStr;
 	Stage* pipeline[5];
@@ -31,13 +33,15 @@ private:
 	WB* wb;
 	Memory *instMem, *dataMem;
 
-	bool pcIsDirty;
-	bool pcIsDirtyNext;
-
+	int currentClock, numInstructions;
+	void writeMemory(u32 addr, u32 val);
+	u32 readMemory(u32 addr);
 public:
 	Register* reg;
 	explicit CPU(Register* reg, Memory* instMem, Memory* dataMem, bool usesBypassing);
 	~CPU();
+	int getCurrentClock();
+	int getNumInstructions();
 	void exec();
 	bool isRegDirty(int num);
 	bool isPcDirty();
@@ -46,6 +50,10 @@ public:
 	void setRegDirty(int num, WriteType writeType);
 	void setPcDirty();
 	std::string getPipelineState(int num);
+	int getAccessClock(int pos);
+	u32 getAccessAddress(int pos);
+	std::string getAccessResult(int pos);
+	int getAccessQueueSize();
 
 	friend class IF;
 	friend class IDRF;

@@ -10,7 +10,6 @@ CPP_SRCS += \
 ../app.cpp \
 ../cpu.cpp \
 ../display_grid.cpp \
-../main.cpp \
 ../main_window.cpp \
 ../memory.cpp \
 ../presenter.cpp \
@@ -21,7 +20,6 @@ OBJS += \
 ./app.o \
 ./cpu.o \
 ./display_grid.o \
-./main.o \
 ./main_window.o \
 ./memory.o \
 ./presenter.o \
@@ -32,7 +30,6 @@ CPP_DEPS += \
 ./app.d \
 ./cpu.d \
 ./display_grid.d \
-./main.d \
 ./main_window.d \
 ./memory.d \
 ./presenter.d \

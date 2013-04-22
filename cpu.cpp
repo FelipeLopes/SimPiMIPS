@@ -7,6 +7,8 @@ CPU::CPU(Register* reg, Memory* instMem, Memory* dataMem, bool usesBypassing):
 	this->reg = reg;
 	this->instMem = instMem;
 	this->dataMem = dataMem;
+	currentClock = 0;
+	numInstructions = 0;
 
 	idStr.clear();
 	idStr["add"] = 0;
@@ -27,8 +29,7 @@ CPU::CPU(Register* reg, Memory* instMem, Memory* dataMem, bool usesBypassing):
 	pipeline[3] = dem = new DEM(this);
 	pipeline[4] = wb = new WB(this);
 
-	for (int i=0; i<4; i++) dirtyRegs[i].first=-1;
-	pcIsDirty=pcIsDirtyNext=false;
+	for (int i=0; i<4; i++) dirtyRegs[i].first=-2;
 }
 
 CPU::~CPU(){
@@ -54,16 +55,77 @@ u32 CPU::getReg(int num){
 	return reg->read(num);
 }
 
+void CPU::setPcDirty(){
+	dirtyRegs[0] = std::make_pair(-1,REGISTER_WRITE);
+}
+
+bool CPU::isPcDirty(){
+	if (!usesBypassing){
+		for (int i=1; i<4; i++) if (dirtyRegs[i].first==-1) return true;
+		return false;
+	}
+	for (int i=1; i<3; i++) if (dirtyRegs[i].first==-1) return true;
+	return false;
+}
+
+u32 CPU::getPc(){
+	if (usesBypassing && dirtyRegs[3].first==-1) return dem->valPC;
+	return reg->readPC();
+}
+
 void CPU::exec(){
-	pcIsDirtyNext=pcIsDirty;
+	currentClock++;
 	dirtyRegs[3]=dirtyRegs[2];
 	dirtyRegs[2]=dirtyRegs[1];
 	dirtyRegs[1]=dirtyRegs[0];
-	dirtyRegs[0].first=-1;
+	dirtyRegs[0].first=-2;
 	for (int i=4; i>=0; i--) pipeline[i]->exec();
-	pcIsDirty = pcIsDirtyNext;
+	if (getPipelineState(4).compare("stall")!=0) numInstructions++;
 }
 
 std::string CPU::getPipelineState(int num){
 	return pipeline[num]->getState();
+}
+
+int CPU::getCurrentClock(){
+	return currentClock;
+}
+
+int CPU::getNumInstructions(){
+	return numInstructions;
+}
+
+void CPU::writeMemory(u32 addr, u32 val){
+	if (accessQueue.size()==4) accessQueue.pop_back();
+	accessQueue.push_front(std::make_pair(std::make_pair(std::make_pair(addr,'W'),val),currentClock));
+	dataMem->write(addr,val);
+}
+
+u32 CPU::readMemory(u32 addr){
+	u32 val = dataMem->read(addr);
+	if (accessQueue.size()==4) accessQueue.pop_back();
+	accessQueue.push_front(std::make_pair(std::make_pair(std::make_pair(addr,'R'),val),currentClock));
+	return val;
+}
+
+int CPU::getAccessClock(int pos){
+	return accessQueue[pos].second;
+}
+
+u32 CPU::getAccessAddress(int pos){
+	return accessQueue[pos].first.first.first;
+}
+
+std::string CPU::getAccessResult(int pos){
+	std::string s = "";
+	s += accessQueue[pos].first.first.second;
+	s += " ";
+	char str[40];
+	sprintf(str,"%d",accessQueue[pos].first.second);
+	s += str;
+	return s;
+}
+
+int CPU::getAccessQueueSize(){
+	return accessQueue.size();
 }

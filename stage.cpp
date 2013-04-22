@@ -25,7 +25,7 @@ IF::IF(CPU* cpu):Stage(cpu){
 
 void IF::exec() {
 	executed=false;
-	if (cpu->idrf->isBlocked || cpu->pcIsDirty){
+	if (cpu->idrf->isBlocked || cpu->isPcDirty()){
 		this->isBlocked=true;
 		return;
 	}
@@ -51,10 +51,10 @@ void IDRF::exec() {
 	executed=false;
 	if(this->isIdle) return;
 
-	if (cpu->pcIsDirty)	this->isIdle=true;
+	if (cpu->isPcDirty())	this->isIdle=true;
 	if (cpu->ex->isBlocked)	this->isBlocked=true;
 
-	if (cpu->pcIsDirty || cpu->ex->isBlocked) return;
+	if (cpu->isPcDirty() || cpu->ex->isBlocked) return;
 
 	u32 instr = cpu->iF->currentInst;
 	op = instr >> 26;
@@ -148,7 +148,7 @@ void IDRF::exec() {
 	case 2: //beq
 	case 3: //ble
 	case 4: //bne
-		readSuccessful = !cpu->isRegDirty(rs) && !cpu->isRegDirty(rt) && !cpu->pcIsDirty;
+		readSuccessful = !cpu->isRegDirty(rs) && !cpu->isRegDirty(rt) && !cpu->isPcDirty();
 		break;
 	default: //jmp, nop
 		readSuccessful = true;
@@ -176,7 +176,7 @@ void IDRF::exec() {
 	case 3: //ble
 	case 4: //bne
 	case 5: //jmp
-		cpu->pcIsDirtyNext = true;
+		cpu->setPcDirty();
 		break;
 	default: //sw, nop
 		break;
@@ -187,7 +187,7 @@ void IDRF::exec() {
 	case 'I':
 		valRs = cpu->getReg(rs);
 		valRt = cpu->getReg(rt);
-		valPC = cpu->reg->readPC();
+		valPC = cpu->getPc();
 		break;
 	case 'J':
 		break;
@@ -305,11 +305,11 @@ void DEM::exec() {
 	}
 
 	if (command.compare("lw") == 0) {
-		result = mem->read(ex->result);
+		result = cpu->readMemory(ex->result);
 	}
 
 	if (command.compare("sw") == 0) {
-		mem->write(ex->result, ex->valRt);
+		cpu->writeMemory(ex->result, ex->valRt);
 	}
 
 	this->isBlocked = false;
@@ -347,11 +347,9 @@ void WB::exec() {
 	case 4: //bne
 		if (dem->cond) reg->writePC(dem->result);
 		else reg->writePC(dem->valPC);
-		cpu->pcIsDirtyNext=false;
 		break;
 	case 5: //jmp
 		reg->writePC(dem->result);
-		cpu->pcIsDirtyNext=false;
 		break;
 	case 8: //nop
 	case 10://sw
