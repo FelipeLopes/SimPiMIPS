@@ -30,12 +30,12 @@ private:
 	DEM* dem;
 	WB* wb;
 	Memory *instMem, *dataMem;
-	Register* reg;
 
 	bool pcIsDirty;
 	bool pcIsDirtyNext;
 
 public:
+	Register* reg;
 	explicit CPU(Register* reg, Memory* instMem, Memory* dataMem, bool usesBypassing);
 	~CPU();
 	void exec();

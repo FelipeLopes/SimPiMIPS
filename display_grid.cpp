@@ -7,5 +7,7 @@ DisplayGrid::DisplayGrid(wxWindow* parent, const wxPoint& pos, const wxSize& siz
 	SetColLabelSize(0);
 	SetRowLabelSize(0);
 	EnableEditing(false);
+	EnableDragCell(false);
+	EnableDragGridSize(false);
 	ClearSelection();
 }

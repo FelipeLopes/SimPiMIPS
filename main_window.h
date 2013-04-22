@@ -9,6 +9,7 @@ class MainWindow: public wxFrame{
 public:
 	MainWindow(CPU* cpu);
 	DisplayGrid* pipelineDisplay;
+	DisplayGrid* registerDisplay;
 	virtual ~MainWindow();
 protected:
 	Presenter* presenter;
