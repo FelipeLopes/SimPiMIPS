@@ -7,19 +7,24 @@
 
 class MainWindow: public wxFrame{
 public:
-	MainWindow(CPU* cpu);
+	MainWindow(Presenter* presenter);
 	DisplayGrid *pipelineDisplay,*registerDisplay,*miscDisplay,*accessDisplay;
-	wxTextCtrl* inputFileBox;
+	wxTextCtrl *inputFileBox,*instFileBox;
 	virtual ~MainWindow();
 protected:
 	Presenter* presenter;
 	CPU* cpu;
-	wxButton *advanceButton,*inputFileBrowseButton;
+	wxButton *advanceButton,*inputFileBrowseButton,*instFileBrowseButton,*initButton;
 	void onClickAdvance(wxCommandEvent& event);
 	void onClickInputFileBrowse(wxCommandEvent& event);
+	void onClickInstFileBrowse(wxCommandEvent& event);
+	void onClickInit(wxCommandEvent& event);
 	enum{
 		ID_INPUT_FILE_BOX = wxID_HIGHEST + 1,
 		ID_INPUT_FILE_BROWSE_BUTTON,
+		ID_INST_FILE_BOX,
+		ID_INST_FILE_BROWSE_BUTTON,
+		ID_INIT_BUTTON,
 		ID_ADVANCE_BUTTON
 	};
 	DECLARE_EVENT_TABLE()

@@ -8,11 +8,15 @@ class MainWindow;
 
 class Presenter{
 public:
-	Presenter(MainWindow* mainWindow, CPU* cpu);
+	Presenter();
 	void populateWindow();
 	void advanceCPU();
-	void getInputFile();
+	void getFilePath(wxTextCtrl* textCtrl);
+	void init();
+	MainWindow* getMainWindow();
 private:
+	Memory *instMem,*dataMem;
+	Register *reg;
 	MainWindow* mainWindow;
 	CPU* cpu;
 };
