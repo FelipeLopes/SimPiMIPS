@@ -205,7 +205,7 @@ void IDRF::exec() {
 }
 
 EX::EX(CPU* cpu):Stage(cpu){
-
+	ticksToFinish=0;
 }
 
 void EX::exec() {
