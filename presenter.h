@@ -13,7 +13,7 @@ class Presenter{
 public:
 	Presenter();
 	void populateWindow();
-	void advanceCPU();
+	void advanceCPU(int n);
 	void getFilePath(wxTextCtrl* textCtrl);
 	void init();
 	MainWindow* getMainWindow();

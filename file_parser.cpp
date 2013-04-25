@@ -37,14 +37,19 @@ bool parseInstFile(const wxString& filename, Memory* memory,
 		u32 inst=0;
 		int i;
 		for (i=0; i<32; i++){
-			if (buffer[i]!='0' && buffer[i]!='1') return false;
+			if (buffer[i]!='0' && buffer[i]!='1'){
+				printf("%d\n",instPos);
+				return false;
+			}
 			inst=2*inst+buffer[i]-'0';
 		}
 		memory->write(instPos*4,inst);
 		instDesc.push_back("");
 		while (i<buffer.size() && isspace(buffer[i])) i++;
 		if (i==buffer.size()) continue;
-		else if (buffer[i]!=';') return false;
+		else if (buffer[i]!=';') {
+			return false;
+		}
 		else {
 			++i;
 			while (i<buffer.size() && isspace(buffer[i])) i++;

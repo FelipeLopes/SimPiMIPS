@@ -65,8 +65,12 @@ void Presenter::populateWindow(){
 	}
 }
 
-void Presenter::advanceCPU(){
-	cpu->exec();
+void Presenter::advanceCPU(int n){
+	if (cpu==NULL){
+		wxMessageBox(_("CPU wasn't initialized!"),_("OMFG Error!"),wxICON_ERROR);
+		return;
+	}
+	for (int i=0; i<n; i++) cpu->exec();
 	populateWindow();
 }
 
@@ -81,7 +85,16 @@ void Presenter::init(){
 	instMem = new Memory;
 	dataMem = new Memory;
 	reg = new Register;
-	cpu = new CPU(reg,instMem,dataMem,true);
-	parseInstFile(mainWindow->instFileBox->GetLineText(0),instMem,instDesc);
-	parseInputFile(mainWindow->inputFileBox->GetLineText(0),dataMem);
+	if(!parseInstFile(mainWindow->instFileBox->GetLineText(0),instMem,instDesc)){
+		wxMessageBox(_("Instruction file doesn't exist or has the wrong format.\n"
+						"(Last lines with whitespace?)"),_("OMFG Error!"),wxICON_ERROR);
+		return;
+	}
+	if (!parseInputFile(mainWindow->inputFileBox->GetLineText(0),dataMem)){
+		wxMessageBox(_("Input file doesn't exist or has the wrong format.\n"),
+					_("OMFG Error!"),wxICON_ERROR);
+		return;
+	}
+	cpu = new CPU(reg,instMem,dataMem,
+			mainWindow->useBypassingCheckBox->GetValue());
 }
