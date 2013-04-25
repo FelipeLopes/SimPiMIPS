@@ -1,6 +1,9 @@
 #ifndef PRESENTER_H_
 #define PRESENTER_H_
 
+#include <vector>
+#include <string>
+#include "typedefs.h"
 #include "main_window.h"
 #include "cpu.h"
 
@@ -15,6 +18,7 @@ public:
 	void init();
 	MainWindow* getMainWindow();
 private:
+	std::vector<std::string> instDesc;
 	Memory *instMem,*dataMem;
 	Register *reg;
 	MainWindow* mainWindow;
