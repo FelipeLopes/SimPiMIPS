@@ -12,7 +12,59 @@ END_EVENT_TABLE()
 
 MainWindow::MainWindow(Presenter* presenter):wxFrame(NULL,wxID_ANY,_("SimPiMIPS"),wxPoint(400,0),wxSize(840,630)),
 	presenter(presenter){
+#ifdef __MINGW32__
+	pipelineDisplay = new DisplayGrid(this,wxPoint(10,210),wxSize(817,52),2,5);
+	pipelineDisplay->SetDefaultColSize(163,true);
+	pipelineDisplay->SetDefaultRowSize(25,true);
+	pipelineDisplay->SetMargins(-10,-10);
+	registerDisplay = new DisplayGrid(this,wxPoint(10,300),wxSize(482,202),8,4);
+	registerDisplay->SetDefaultColSize(120,true);
+	registerDisplay->SetDefaultRowSize(25,true);
+	registerDisplay->SetMargins(-10,-10);
+	miscDisplay = new DisplayGrid(this,wxPoint(530,300),wxSize(297,102),4,2);
+	miscDisplay->SetColSize(0,165);
+	miscDisplay->SetColSize(1,130);
+	miscDisplay->SetMargins(-10,-10);
+	miscDisplay->SetDefaultRowSize(25,true);
+	accessDisplay = new DisplayGrid(this,wxPoint(530,440),wxSize(297,127),5,3);
+	accessDisplay->SetMargins(-10,-10);
+	accessDisplay->SetColSize(0,55);
+	accessDisplay->SetColSize(1,120);
+	accessDisplay->SetColSize(2,120);
+	accessDisplay->SetDefaultRowSize(25,true);
 
+	instFileBox = new wxTextCtrl(this, wxID_ANY,
+			wxEmptyString,wxPoint(110,10), wxSize(300,25));
+	inputFileBox = new wxTextCtrl(this, wxID_ANY,
+			wxEmptyString,wxPoint(110,45), wxSize(300,25));
+	clocksBox = new wxTextCtrl(this,wxID_ANY,
+			wxEmptyString,wxPoint(322,145), wxSize(75,25));
+	useBypassingCheckBox = new wxCheckBox(this,wxID_ANY,_("Use bypassing"),
+			wxPoint(599,40));
+
+	pipelineDisplayLabel = new wxStaticText(this,wxID_ANY,_("Pipeline stages:"),
+			wxPoint(10,190));
+	registerDisplayLabel = new wxStaticText(this,wxID_ANY,_("Registers:"),
+			wxPoint(10,280));
+	miscDisplayLabel = new wxStaticText(this,wxID_ANY,_("Miscellaneous:"),wxPoint(530,280));
+	accessDisplayLabel = new wxStaticText(this,wxID_ANY,_("Recent memory accesses:"),
+			wxPoint(530,420));
+	instFileLabel = new wxStaticText(this,wxID_ANY,_("Instructions file:"),wxPoint(23,15));
+	inputFileLabel = new wxStaticText(this,wxID_ANY,_("Input file:"),wxPoint(55,50));
+	clocksLabel = new wxStaticText(this,wxID_ANY,_("Clocks:"),wxPoint(272,150));
+	cpuStatusLabel = new wxStaticText(this,wxID_ANY,_("Execution status:\nCPU uninitialized"),
+			wxPoint(10,90));
+
+	nextStepButton = new wxButton(this,ID_NEXT_STEP_BUTTON,_("Next step"),wxPoint(10,144));
+	advanceButton = new wxButton(this,ID_ADVANCE_BUTTON,_("Advance"),wxPoint(407,147));
+	initButton = new wxButton(this,ID_INIT_BUTTON,_("Initialize"),wxPoint(600,5));
+	instFileBrowseButton = new wxButton(this,ID_INST_FILE_BROWSE_BUTTON,_("Browse..."),
+			wxPoint(420,10),wxSize(80,25));
+	inputFileBrowseButton = new wxButton(this,ID_INPUT_FILE_BROWSE_BUTTON,_("Browse..."),
+			wxPoint(420,45),wxSize(80,25));
+	dumpOutputButton = new wxButton(this,ID_DUMP_OUTPUT_BUTTON,_("Dump output..."),
+			wxPoint(600,144));
+#else
 	pipelineDisplay = new DisplayGrid(this,wxPoint(10,210),wxSize(817,52),2,5);
 	pipelineDisplay->SetDefaultColSize(163,true);
 	pipelineDisplay->SetMargins(-10,-10);
@@ -61,6 +113,7 @@ MainWindow::MainWindow(Presenter* presenter):wxFrame(NULL,wxID_ANY,_("SimPiMIPS"
 			wxPoint(420,45),wxSize(80,30));
 	dumpOutputButton = new wxButton(this,ID_DUMP_OUTPUT_BUTTON,_("Dump output..."),
 			wxPoint(600,144));
+#endif
 }
 
 void MainWindow::init(){
