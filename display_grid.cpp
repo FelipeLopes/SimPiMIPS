@@ -4,8 +4,8 @@ DisplayGrid::DisplayGrid(wxWindow* parent, const wxPoint& pos, const wxSize& siz
 		int numRows, int numCols):
 		wxGrid(parent,-1,pos,size){
 	CreateGrid(numRows,numCols);
-	SetColLabelSize(0);
-	SetRowLabelSize(0);
+	SetColLabelSize(2);
+	SetRowLabelSize(2);
 	EnableEditing(false);
 	EnableDragCell(false);
 	EnableDragGridSize(false);

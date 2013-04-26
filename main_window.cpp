@@ -7,18 +7,25 @@ BEGIN_EVENT_TABLE(MainWindow,wxFrame)
 	EVT_BUTTON(MainWindow::ID_INST_FILE_BROWSE_BUTTON,MainWindow::onClickInstFileBrowse)
 	EVT_BUTTON(MainWindow::ID_INIT_BUTTON,MainWindow::onClickInit)
 	EVT_BUTTON(MainWindow::ID_DUMP_OUTPUT_BUTTON,MainWindow::onClickDumpOutput)
+	EVT_CHAR(MainWindow::onClickNextStep)
 END_EVENT_TABLE()
 
 MainWindow::MainWindow(Presenter* presenter):
-	wxFrame(NULL,wxID_ANY,_("SimPiMIPS"),wxPoint(400,0),wxSize(510,1000)),
+	wxFrame(NULL,wxID_ANY,_("SimPiMIPS"),wxPoint(400,0),wxSize(840,630)),
 	presenter(presenter){
 
-	pipelineDisplay = new DisplayGrid(this,wxPoint(10,210),wxSize(405,60),2,5);
-	registerDisplay = new DisplayGrid(this,wxPoint(10,310),wxSize(485,210),8,4);
+	pipelineDisplay = new DisplayGrid(this,wxPoint(10,210),wxSize(482,52),2,5);
+	pipelineDisplay->SetDefaultColSize(96,true);
+	pipelineDisplay->SetMargins(0,-10);
+	registerDisplay = new DisplayGrid(this,wxPoint(10,300),wxSize(482,202),8,4);
 	registerDisplay->SetDefaultColSize(120,true);
-	miscDisplay = new DisplayGrid(this,wxPoint(10,720),wxSize(240,110),4,2);
-	miscDisplay->SetDefaultColSize(120,true);
-	accessDisplay = new DisplayGrid(this,wxPoint(10,550),wxSize(300,135),5,3);
+	registerDisplay->SetMargins(0,-10);
+	miscDisplay = new DisplayGrid(this,wxPoint(530,210),wxSize(302,102),4,2);
+	miscDisplay->SetColSize(0,170);
+	miscDisplay->SetColSize(1,130);
+	miscDisplay->SetMargins(0,-10);
+	accessDisplay = new DisplayGrid(this,wxPoint(530,375),wxSize(302,127),5,3);
+	accessDisplay->SetMargins(0,-10);
 	accessDisplay->SetColSize(0,60);
 	accessDisplay->SetColSize(1,120);
 	accessDisplay->SetColSize(2,120);
@@ -28,26 +35,26 @@ MainWindow::MainWindow(Presenter* presenter):
 	inputFileBox = new wxTextCtrl(this, wxID_ANY,
 			wxEmptyString,wxPoint(120,45), wxSize(300,30));
 	clocksBox = new wxTextCtrl(this,wxID_ANY,
-			wxEmptyString,wxPoint(240,145));
+			wxEmptyString,wxPoint(322,145));
 	useBypassingCheckBox = new wxCheckBox(this,wxID_ANY,_("Use bypassing"),
-			wxPoint(120,90));
+			wxPoint(599,40));
 
 	pipelineDisplayLabel = new wxStaticText(this,wxID_ANY,_("Pipeline stages:"),
 			wxPoint(10,190));
 	registerDisplayLabel = new wxStaticText(this,wxID_ANY,_("Registers:"),
-			wxPoint(10,290));
+			wxPoint(10,280));
 	miscDisplayLabel = new wxStaticText(this,wxID_ANY,_("Miscellaneous:"),
-			wxPoint(10,700));
+			wxPoint(530,190));
 	accessDisplayLabel = new wxStaticText(this,wxID_ANY,_("Recent memory accesses:"),
-			wxPoint(10,530));
+			wxPoint(530,355));
 	instFileLabel = new wxStaticText(this,wxID_ANY,_("Instructions file:"),wxPoint(10,10));
 	inputFileLabel = new wxStaticText(this,wxID_ANY,_("Input file:"),wxPoint(55,50));
-	clocksLabel = new wxStaticText(this,wxID_ANY,_("Clocks:"),wxPoint(190,150),
+	clocksLabel = new wxStaticText(this,wxID_ANY,_("Clocks:"),wxPoint(272,150),
 			wxSize(150,30));
 
-	nextStepButton = new wxButton(this,ID_NEXT_STEP_BUTTON,_("Next step"),wxPoint(10,140));
-	advanceButton = new wxButton(this,ID_ADVANCE_BUTTON,_("Advance"),wxPoint(325,140));
-	initButton = new wxButton(this,ID_INIT_BUTTON,_("Initialize"),wxPoint(300,85));
+	nextStepButton = new wxButton(this,ID_NEXT_STEP_BUTTON,_("Next step"),wxPoint(10,144));
+	advanceButton = new wxButton(this,ID_ADVANCE_BUTTON,_("Advance"),wxPoint(407,144));
+	initButton = new wxButton(this,ID_INIT_BUTTON,_("Initialize"),wxPoint(600,5));
 	instFileBrowseButton = new wxButton(this,ID_INST_FILE_BROWSE_BUTTON,_("Browse..."),
 			wxPoint(420,5),wxSize(80,30));
 	inputFileBrowseButton = new wxButton(this,ID_INPUT_FILE_BROWSE_BUTTON,_("Browse..."),
