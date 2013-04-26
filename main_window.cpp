@@ -10,7 +10,12 @@ BEGIN_EVENT_TABLE(MainWindow,wxFrame)
 	EVT_BUTTON(MainWindow::ID_DUMP_OUTPUT_BUTTON,MainWindow::onClickDumpOutput)
 END_EVENT_TABLE()
 
-MainWindow::MainWindow(Presenter* presenter):wxFrame(NULL,wxID_ANY,_("SimPiMIPS"),wxPoint(400,0),wxSize(840,630)),
+MainWindow::MainWindow(Presenter* presenter):
+#ifdef __MINGW32__
+	wxFrame(NULL,wxID_ANY,_("SimPiMIPS"),wxPoint(400,0),wxSize(855,630)),
+#else
+	wxFrame(NULL,wxID_ANY,_("SimPiMIPS"),wxPoint(400,0),wxSize(840,630)),
+#endif
 	presenter(presenter){
 #ifdef __MINGW32__
 	pipelineDisplay = new DisplayGrid(this,wxPoint(10,210),wxSize(817,52),2,5);
@@ -40,7 +45,7 @@ MainWindow::MainWindow(Presenter* presenter):wxFrame(NULL,wxID_ANY,_("SimPiMIPS"
 	clocksBox = new wxTextCtrl(this,wxID_ANY,
 			wxEmptyString,wxPoint(322,145), wxSize(75,25));
 	useBypassingCheckBox = new wxCheckBox(this,wxID_ANY,_("Use bypassing"),
-			wxPoint(599,40));
+			wxPoint(599,50));
 
 	pipelineDisplayLabel = new wxStaticText(this,wxID_ANY,_("Pipeline stages:"),
 			wxPoint(10,190));
@@ -57,7 +62,7 @@ MainWindow::MainWindow(Presenter* presenter):wxFrame(NULL,wxID_ANY,_("SimPiMIPS"
 
 	nextStepButton = new wxButton(this,ID_NEXT_STEP_BUTTON,_("Next step"),wxPoint(10,144));
 	advanceButton = new wxButton(this,ID_ADVANCE_BUTTON,_("Advance"),wxPoint(407,147));
-	initButton = new wxButton(this,ID_INIT_BUTTON,_("Initialize"),wxPoint(600,5));
+	initButton = new wxButton(this,ID_INIT_BUTTON,_("Initialize"),wxPoint(600,15));
 	instFileBrowseButton = new wxButton(this,ID_INST_FILE_BROWSE_BUTTON,_("Browse..."),
 			wxPoint(420,10),wxSize(80,25));
 	inputFileBrowseButton = new wxButton(this,ID_INPUT_FILE_BROWSE_BUTTON,_("Browse..."),
