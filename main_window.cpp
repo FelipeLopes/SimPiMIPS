@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include "main_window.h"
 
 BEGIN_EVENT_TABLE(MainWindow,wxFrame)
@@ -10,13 +11,14 @@ BEGIN_EVENT_TABLE(MainWindow,wxFrame)
 END_EVENT_TABLE()
 
 MainWindow::MainWindow(Presenter* presenter):
-	wxFrame(NULL,wxID_ANY,_("SimPiMIPS"),wxPoint(400,0),wxSize(510,1000)),
+	wxFrame(NULL,wxID_ANY,_("SimPiMIPS"),wxPoint(400,0),wxSize(720,720)),
 	presenter(presenter){
 
-	pipelineDisplay = new DisplayGrid(this,wxPoint(10,210),wxSize(405,60),2,5);
+	pipelineDisplay = new DisplayGrid(this,wxPoint(10,210),wxSize(705,60),2,5);
+	pipelineDisplay->SetDefaultColSize(140,true);
 	registerDisplay = new DisplayGrid(this,wxPoint(10,310),wxSize(485,210),8,4);
 	registerDisplay->SetDefaultColSize(120,true);
-	miscDisplay = new DisplayGrid(this,wxPoint(10,720),wxSize(240,110),4,2);
+	miscDisplay = new DisplayGrid(this,wxPoint(400,550),wxSize(240,110),4,2);
 	miscDisplay->SetDefaultColSize(120,true);
 	accessDisplay = new DisplayGrid(this,wxPoint(10,550),wxSize(300,135),5,3);
 	accessDisplay->SetColSize(0,60);
@@ -37,13 +39,15 @@ MainWindow::MainWindow(Presenter* presenter):
 	registerDisplayLabel = new wxStaticText(this,wxID_ANY,_("Registers:"),
 			wxPoint(10,290));
 	miscDisplayLabel = new wxStaticText(this,wxID_ANY,_("Miscellaneous:"),
-			wxPoint(10,700));
+			wxPoint(400,530));
 	accessDisplayLabel = new wxStaticText(this,wxID_ANY,_("Recent memory accesses:"),
 			wxPoint(10,530));
 	instFileLabel = new wxStaticText(this,wxID_ANY,_("Instructions file:"),wxPoint(10,10));
 	inputFileLabel = new wxStaticText(this,wxID_ANY,_("Input file:"),wxPoint(55,50));
 	clocksLabel = new wxStaticText(this,wxID_ANY,_("Clocks:"),wxPoint(190,150),
 			wxSize(150,30));
+	cpuStatusLabel = new wxStaticText(this,wxID_ANY,_("Execution status:\nCPU uninitialized"),
+			wxPoint(550,40));
 
 	nextStepButton = new wxButton(this,ID_NEXT_STEP_BUTTON,_("Next step"),wxPoint(10,140));
 	advanceButton = new wxButton(this,ID_ADVANCE_BUTTON,_("Advance"),wxPoint(325,140));
@@ -52,8 +56,65 @@ MainWindow::MainWindow(Presenter* presenter):
 			wxPoint(420,5),wxSize(80,30));
 	inputFileBrowseButton = new wxButton(this,ID_INPUT_FILE_BROWSE_BUTTON,_("Browse..."),
 			wxPoint(420,45),wxSize(80,30));
-	dumpOutputButton = new wxButton(this,wxID_ANY,_("Dump output..."),
-			wxPoint(360,550));
+	dumpOutputButton = new wxButton(this,ID_DUMP_OUTPUT_BUTTON,_("Dump output..."),
+			wxPoint(550,140));
+}
+
+void MainWindow::init(){
+	pipelineDisplay->SetCellValue(0,0,_("IF"));
+	pipelineDisplay->SetCellValue(0,1,_("IDRF"));
+	pipelineDisplay->SetCellValue(0,2,_("EX"));
+	pipelineDisplay->SetCellValue(0,3,_("DEM"));
+	pipelineDisplay->SetCellValue(0,4,_("WB"));
+
+	miscDisplay->SetCellValue(0,0,_("Clock:"));
+	miscDisplay->SetCellValue(1,0,_("PC:"));
+	miscDisplay->SetCellValue(2,0,_("No. instructions:"));
+	miscDisplay->SetCellValue(3,0,_("Productivity:"));
+
+	accessDisplay->SetCellValue(0,0,_("Clock"));
+	accessDisplay->SetCellValue(0,1,_("Address"));
+	accessDisplay->SetCellValue(0,2,_("Access"));
+}
+
+void MainWindow::populateWindow(CPU* cpu, std::vector<std::string>& instDesc){
+	for (int i=0; i<5; i++){
+		wxString str;
+		int state = cpu->getPipelineState(i);
+		if (state==Stage::STATE_OUT_OF_PROGRAM) str = _("unknown");
+		else if (state==Stage::STATE_STALL) str = _("stall");
+		else str = wxString(instDesc[state/4].c_str(),wxConvUTF8);
+		pipelineDisplay->SetCellValue(1,i,str);
+	}
+	char s[40];
+	for (int i=0; i<32; i++){
+		std::string str = "R";
+		sprintf(s,"%d",i);
+		str+=s;
+		str+=": ";
+		sprintf(s,"%d",cpu->reg->read(i));
+		str+=s;
+		wxString wxStr(str.c_str(),wxConvUTF8);
+		registerDisplay->SetCellValue(i%8,i/8,wxStr);
+	}
+	sprintf(s,"%d",cpu->getCurrentClock());
+	miscDisplay->SetCellValue(0,1,wxString(s,wxConvUTF8));
+	sprintf(s,"%d",cpu->reg->readPC());
+	miscDisplay->SetCellValue(1,1,wxString(s,wxConvUTF8));
+	sprintf(s,"%d",cpu->getNumInstructions());
+	miscDisplay->SetCellValue(2,1,wxString(s,wxConvUTF8));
+	if (cpu->getCurrentClock()==0) sprintf(s,"N/A");
+	else sprintf(s,"%.2lf%%",100.0*cpu->getNumInstructions()/cpu->getCurrentClock());
+	miscDisplay->SetCellValue(3,1,wxString(s,wxConvUTF8));
+
+	for (int i=0; i<cpu->getAccessQueueSize(); i++){
+		sprintf(s,"%u",cpu->getAccessClock(i));
+		accessDisplay->SetCellValue(i+1,0,wxString(s,wxConvUTF8));
+		sprintf(s,"%u",cpu->getAccessAddress(i));
+		accessDisplay->SetCellValue(i+1,1,wxString(s,wxConvUTF8));
+		sprintf(s,"%s",cpu->getAccessResult(i).c_str());
+		accessDisplay->SetCellValue(i+1,2,wxString(s,wxConvUTF8));
+}
 }
 
 void MainWindow::onClickNextStep(wxCommandEvent& event){
@@ -61,23 +122,23 @@ void MainWindow::onClickNextStep(wxCommandEvent& event){
 }
 
 void MainWindow::onClickAdvance(wxCommandEvent& event){
-
+	presenter->advanceCPU(atoi(clocksBox->GetValue().mb_str()));
 }
 
 void MainWindow::onClickInputFileBrowse(wxCommandEvent& event){
-	presenter->getFilePath(inputFileBox);
+	inputFileBox->ChangeValue(presenter->getFilePath());
 }
 
 void MainWindow::onClickInstFileBrowse(wxCommandEvent& event){
-	presenter->getFilePath(instFileBox);
+	instFileBox->ChangeValue(presenter->getFilePath());
 }
 
 void MainWindow::onClickDumpOutput(wxCommandEvent& event){
-
+	presenter->dumpOutput();
 }
 
 void MainWindow::onClickInit(wxCommandEvent& event){
-	presenter->init();
+	presenter->initializeCPU();
 }
 
 MainWindow::~MainWindow(){

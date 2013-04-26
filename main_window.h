@@ -8,6 +8,8 @@
 class MainWindow: public wxFrame{
 public:
 	MainWindow(Presenter* presenter);
+	void init();
+	void populateWindow(CPU* cpu,std::vector<std::string>& instDesc);
 	DisplayGrid *pipelineDisplay,*registerDisplay,*miscDisplay,*accessDisplay;
 	wxTextCtrl *inputFileBox,*instFileBox,*clocksBox;
 	wxStaticText *cpuStatusLabel;
@@ -15,7 +17,6 @@ public:
 	virtual ~MainWindow();
 protected:
 	Presenter* presenter;
-	CPU* cpu;
 	wxButton *nextStepButton,*advanceButton,*inputFileBrowseButton,
 			 *instFileBrowseButton,*initButton,*dumpOutputButton;
 	wxStaticText *pipelineDisplayLabel,*registerDisplayLabel,*miscDisplayLabel,

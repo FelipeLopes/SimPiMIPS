@@ -9,7 +9,7 @@
 #include "typedefs.h"
 #include "memory.h"
 
-bool parseInstFile(const wxString& filename, Memory* memory,
+int parseInstFile(const wxString& filename, Memory* memory,
 					std::vector<std::string>& instDesc);
 bool parseInputFile(const wxString& filename, Memory* memory);
 
