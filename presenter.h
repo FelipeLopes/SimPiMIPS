@@ -12,10 +12,10 @@ class MainWindow;
 class Presenter{
 public:
 	Presenter();
-	void populateWindow();
 	void advanceCPU(int n);
-	void getFilePath(wxTextCtrl* textCtrl);
-	void init();
+	wxString getFilePath();
+	void initializeCPU();
+	void dumpOutput();
 	MainWindow* getMainWindow();
 private:
 	std::vector<std::string> instDesc;

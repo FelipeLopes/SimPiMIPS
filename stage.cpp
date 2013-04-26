@@ -4,20 +4,20 @@
 #include <sstream>
 #include "stage.h"
 
-Stage::Stage(CPU* cpu){
+Stage::Stage(CPU* cpu):cpu(cpu){
 	isBlocked = false;
 	executed = false;
 	isIdle = true;
-	this->cpu = cpu;
 }
 
 Stage::~Stage(){
 
 }
 
-std::string Stage::getState(){
-	if (!executed) return "stall";
-	else return stateString;
+int Stage::getState(){
+	if (!executed) return Stage::STATE_STALL;
+	else if (instPos<0 || instPos>=4*cpu->progSize) return Stage::STATE_OUT_OF_PROGRAM;
+	return instPos;
 }
 
 IF::IF(CPU* cpu):Stage(cpu){
@@ -27,19 +27,14 @@ IF::IF(CPU* cpu):Stage(cpu){
 void IF::exec() {
 	executed=false;
 	if (cpu->idrf->isBlocked || cpu->isPcDirty()){
-		this->isBlocked=true;
+		isBlocked=true;
 		return;
 	}
+	instPos = cpu->getPc();
 	currentInst = cpu->instMem->read(cpu->getPc());
 	cpu->reg->writePC(cpu->getPc() + 4);
-
-	this->isBlocked = false;
+	isBlocked=false;
 	cpu->idrf->isIdle=false;
-
-	stateString = "I";
-	std::stringstream ss;
-	ss<<(cpu->reg->readPC()/4-1);
-	stateString += ss.str();
 	executed=true;
 }
 
@@ -49,11 +44,9 @@ IDRF::IDRF(CPU* cpu):Stage(cpu){
 
 void IDRF::exec() {
 	executed=false;
-	if(this->isIdle) return;
-
-	if (cpu->isPcDirty())	this->isIdle=true;
-	if (cpu->ex->isBlocked)	this->isBlocked=true;
-
+	if(isIdle) return;
+	if (cpu->isPcDirty()) isIdle=true;
+	if (cpu->ex->isBlocked)	isBlocked=true;
 	if (cpu->isPcDirty() || cpu->ex->isBlocked) return;
 
 	u32 instr = cpu->iF->currentInst;
@@ -67,16 +60,16 @@ void IDRF::exec() {
 		funct = instr & 0x3F;
 		switch (funct) {
 		case 0b000000:
-			command = "nop";
+			command = CPU::INST_NOP;
 			break;
 		case 0b011000:
-			command = "mul";
+			command = CPU::INST_MUL;
 			break;
 		case 0b100000:
-			command = "add";
+			command = CPU::INST_ADD;
 			break;
 		case 0b100010:
-			command = "sub";
+			command = CPU::INST_SUB;
 			break;
 		default:
 			assert(0);
@@ -85,47 +78,47 @@ void IDRF::exec() {
 		break;
 	case 0b000010:
 		format = 'J';
-		command = "jmp";
+		command = CPU::INST_JMP;
 		targetAddr = instr & ((1 << 26) - 1);
 		break;
 	case 0b000100:
 		format = 'I';
-		command = "bne";
+		command = CPU::INST_BNE;
 		rs = (instr >> 21) & 0x1F;
 		rt = (instr >> 16) & 0x1F;
 		immed = instr & ((1 << 16) - 1);
 		break;
 	case 0b000101:
 		format = 'I';
-		command = "beq";
+		command = CPU::INST_BEQ;
 		rs = (instr >> 21) & 0x1F;
 		rt = (instr >> 16) & 0x1F;
 		immed = instr & ((1 << 16) - 1);
 		break;
 	case 0b000111:
 		format = 'I';
-		command = "ble";
+		command = CPU::INST_BLE;
 		rs = (instr >> 21) & 0x1F;
 		rt = (instr >> 16) & 0x1F;
 		immed = instr & ((1 << 16) - 1);
 		break;
 	case 0b001000:
 		format = 'I';
-		command = "addi";
+		command = CPU::INST_ADDI;
 		rs = (instr >> 21) & 0x1F;
 		rt = (instr >> 16) & 0x1F;
 		immed = instr & ((1 << 16) - 1);
 		break;
 	case 0b100011:
 		format = 'I';
-		command = "lw";
+		command = CPU::INST_LW;
 		rs = (instr >> 21) & 0x1F;
 		rt = (instr >> 16) & 0x1F;
 		immed = instr & ((1 << 16) - 1);
 		break;
 	case 0b101011:
 		format = 'I';
-		command = "sw";
+		command = CPU::INST_SW;
 		rs = (instr >> 21) & 0x1F;
 		rt = (instr >> 16) & 0x1F;
 		immed = instr & ((1 << 16) - 1);
@@ -133,52 +126,57 @@ void IDRF::exec() {
 	}
 
 	bool readSuccessful;
-
-	switch(cpu->idStr[command]){
-	case 0: //add
-	case 7: //mul
-	case 9: //sub
-	case 10://sw
+	switch(command){
+	case CPU::INST_ADD:
+	case CPU::INST_MUL:
+	case CPU::INST_SUB:
+	case CPU::INST_SW:
 		readSuccessful = !cpu->isRegDirty(rs) && !cpu->isRegDirty(rt);
 		break;
-	case 1: //addi
-	case 6: //lw
+	case CPU::INST_ADDI:
+	case CPU::INST_LW:
 		readSuccessful = !cpu->isRegDirty(rs);
 		break;
-	case 2: //beq
-	case 3: //ble
-	case 4: //bne
+	case CPU::INST_BEQ:
+	case CPU::INST_BLE:
+	case CPU::INST_BNE:
 		readSuccessful = !cpu->isRegDirty(rs) && !cpu->isRegDirty(rt) && !cpu->isPcDirty();
 		break;
-	default: //jmp, nop
+	case CPU::INST_JMP:
+	case CPU::INST_NOP:
 		readSuccessful = true;
 		break;
+	default:
+		assert(0);
+		break;
 	}
-
 	if (!readSuccessful){
-		this->isBlocked = true;
+		isBlocked = true;
 		return;
 	}
-
-	switch(cpu->idStr[command]){
-	case 0: //add
-	case 7: //mul
-	case 9: //sub
+	switch(command){
+	case CPU::INST_ADD:
+	case CPU::INST_MUL:
+	case CPU::INST_SUB:
 		cpu->setRegDirty(rd,CPU::REGISTER_WRITE);
 		break;
-	case 1: //addi
+	case CPU::INST_ADDI:
 		cpu->setRegDirty(rt,CPU::REGISTER_WRITE);
 		break;
-	case 6: //lw
+	case CPU::INST_LW:
 		cpu->setRegDirty(rt,CPU::MEMORY_WRITE);
 		break;
-	case 2: //beq
-	case 3: //ble
-	case 4: //bne
-	case 5: //jmp
+	case CPU::INST_BEQ:
+	case CPU::INST_BLE:
+	case CPU::INST_BNE:
+	case CPU::INST_JMP:
 		cpu->setPcDirty();
 		break;
-	default: //sw, nop
+	case CPU::INST_SW:
+	case CPU::INST_NOP:
+		break;
+	default:
+		assert(0);
 		break;
 	}
 
@@ -196,11 +194,11 @@ void IDRF::exec() {
 		break;
 	}
 
-	this->isBlocked = false;
-	this->isIdle=true;
+	isBlocked = false;
+	isIdle=true;
 	cpu->ex->isIdle=false;
 
-	this->stateString = cpu->iF->stateString;
+	instPos = cpu->iF->instPos;
 	executed=true;
 }
 
@@ -217,71 +215,63 @@ void EX::exec() {
 	valRt = idrf->valRt;
 	bool cond;
 
-	if(this->isIdle) return;
-
-	assert(cpu->idStr.find(cpu->idrf->command)!=cpu->idStr.end());
-
-	if (ticksToFinish==0 &&
-			idrf->command.compare("mul")==0) ticksToFinish = 2;
+	if(isIdle) return;
+	if (ticksToFinish==0 &&	command==CPU::INST_MUL) ticksToFinish = 2;
 	else if (ticksToFinish==0) ticksToFinish = 1;
-
 	if(ticksToFinish>0) --ticksToFinish;
-
 	if (cpu->dem->isBlocked || ticksToFinish>0){
-		this->isBlocked=true;
+		isBlocked=true;
 		return;
 	}
-
-	switch (cpu->idStr[idrf->command]) {
-	case 0: //add
+	switch (command) {
+	case CPU::INST_ADD: //add
 		result = idrf->valRs + idrf->valRt;
 		break;
-	case 1: //addi
+	case CPU::INST_ADDI: //addi
 		result = idrf->valRs + idrf->immed;
 		break;
-	case 2: //beq
+	case CPU::INST_BEQ: //beq
 		cond = (static_cast<i32>(idrf->valRs) ==
 				static_cast<i32>(idrf->valRt));
 		if (cond) result = idrf->valPC + idrf->immed;
 		else result = idrf->valPC;
 		break;
-	case 3: //ble
+	case CPU::INST_BLE: //ble
 		cond = (static_cast<i32>(idrf->valRs) <=
 				static_cast<i32>(idrf->valRt));
 		if (cond) result = idrf->immed;
 		else result = idrf->valPC;
 		break;
-	case 4: //bne
+	case CPU::INST_BNE: //bne
 		cond = (static_cast<i32>(idrf->valRs) !=
 				static_cast<i32>(idrf->valRt));
 		if (cond) result = idrf->valPC + idrf->immed;
 		else result = idrf->valPC;
 		break;
-	case 5: //jmp
+	case CPU::INST_JMP: //jmp
 		result = idrf->targetAddr;
 		break;
-	case 6: //lw
+	case CPU::INST_LW: //lw
 		result = idrf->valRs + idrf->immed;
 		break;
-	case 7: //mul
+	case CPU::INST_MUL: //mul
 		result = idrf->valRs * idrf->valRt;
 		break;
-	case 8: //nop
+	case CPU::INST_NOP: //nop
 		//Do nothing
 		break;
-	case 9: //sub
+	case CPU::INST_SUB: //sub
 		result = idrf->valRs - idrf->valRt;
 		break;
-	case 10: //sw
+	case CPU::INST_SW: //sw
 		result = idrf->valRs + idrf->immed;
 		break;
 	}
 
-	this->isBlocked = false;
-	this->isIdle=true;
+	isBlocked=false;
+	isIdle=true;
 	cpu->dem->isIdle=false;
-
-	this->stateString = cpu->idrf->stateString;
+	instPos = cpu->idrf->instPos;
 	executed=true;
 }
 
@@ -297,26 +287,22 @@ void DEM::exec() {
 	result = ex->result;
 	command = ex->command;
 
-	if (this->isIdle) return;
-
+	if (isIdle) return;
 	if (cpu->wb->isBlocked){
-		this->isBlocked=true;
+		isBlocked=true;
 		return;
 	}
-
-	if (command.compare("lw") == 0) {
+	if (command == CPU::INST_LW){
 		result = cpu->readMemory(ex->result);
 	}
-
-	if (command.compare("sw") == 0) {
+	if (command == CPU::INST_SW) {
 		cpu->writeMemory(ex->result, ex->valRt);
 	}
-
-	this->isBlocked = false;
-	this->isIdle=true;
+	isBlocked = false;
+	isIdle=true;
 	cpu->wb->isIdle=false;
 
-	this->stateString = cpu->ex->stateString;
+	instPos = cpu->ex->instPos;
 	executed=true;
 }
 
@@ -329,33 +315,32 @@ void WB::exec() {
 	Register* reg = cpu->reg;
 	DEM* dem = cpu->dem;
 
-	if(this->isIdle) return;
-
-	assert(cpu->idStr.find(cpu->dem->command)!=cpu->idStr.end());
-	switch (cpu->idStr[dem->command]) {
-	case 0: //add
-	case 7: //mul
-	case 9: //sub
+	if (isIdle) return;
+	switch (dem->command) {
+	case CPU::INST_ADD:
+	case CPU::INST_MUL:
+	case CPU::INST_SUB:
 		reg->write(dem->rd,dem->result);
 		break;
-	case 1: //addi
-	case 6: //lw
+	case CPU::INST_ADDI:
+	case CPU::INST_LW:
 		reg->write(dem->rt,dem->result);
 		break;
-	case 2: //beq
-	case 3: //ble
-	case 4: //bne
-	case 5: //jmp
+	case CPU::INST_BEQ:
+	case CPU::INST_BLE:
+	case CPU::INST_BNE:
+	case CPU::INST_JMP:
 		if (!cpu->usesBypassing) reg->writePC(dem->result);
 		break;
-	case 8: //nop
-	case 10://sw
+	case CPU::INST_NOP:
+	case CPU::INST_SW:
 		//Do nothing
 		break;
+	default:
+		assert(0);
+		break;
 	}
-
-	this->isIdle = true;
-
-	this->stateString = cpu->dem->stateString;
+	isIdle = true;
+	instPos = cpu->dem->instPos;
 	executed=true;
 }

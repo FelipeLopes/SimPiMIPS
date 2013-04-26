@@ -2,26 +2,12 @@
 #include <cassert>
 #include "cpu.h"
 
-CPU::CPU(Register* reg, Memory* instMem, Memory* dataMem, bool usesBypassing):
-		usesBypassing(usesBypassing){
-	this->reg = reg;
-	this->instMem = instMem;
-	this->dataMem = dataMem;
+CPU::CPU(Register* reg, Memory* instMem, Memory* dataMem, bool usesBypassing, int progSize):
+		reg(reg),instMem(instMem),dataMem(dataMem),
+		usesBypassing(usesBypassing),progSize(progSize){
 	currentClock = 0;
 	numInstructions = 0;
-
-	idStr.clear();
-	idStr["add"] = 0;
-	idStr["addi"] = 1;
-	idStr["beq"] = 2;
-	idStr["ble"] = 3;
-	idStr["bne"] = 4;
-	idStr["jmp"] = 5;
-	idStr["lw"] = 6;
-	idStr["mul"] = 7;
-	idStr["nop"] = 8;
-	idStr["sub"] = 9;
-	idStr["sw"] = 10;
+	executionFinished = false;
 
 	pipeline[0] = iF = new IF(this);
 	pipeline[1] = idrf = new IDRF(this);
@@ -76,16 +62,22 @@ u32 CPU::getPc(){
 }
 
 void CPU::exec(){
+	if (executionFinished) return;
 	currentClock++;
 	dirtyRegs[3]=dirtyRegs[2];
 	dirtyRegs[2]=dirtyRegs[1];
 	dirtyRegs[1]=dirtyRegs[0];
 	dirtyRegs[0].first=-2;
 	for (int i=4; i>=0; i--) pipeline[i]->exec();
-	if (getPipelineState(4).compare("stall")!=0) numInstructions++;
+	int state = getPipelineState(4);
+	if (state==Stage::STATE_OUT_OF_PROGRAM){
+		--currentClock;
+		executionFinished=true;
+	}
+	else if (state!=Stage::STATE_STALL) numInstructions++;
 }
 
-std::string CPU::getPipelineState(int num){
+int CPU::getPipelineState(int num){
 	return pipeline[num]->getState();
 }
 
@@ -130,4 +122,8 @@ std::string CPU::getAccessResult(int pos){
 
 int CPU::getAccessQueueSize(){
 	return accessQueue.size();
+}
+
+bool CPU::isExecutionFinished(){
+	return executionFinished;
 }
