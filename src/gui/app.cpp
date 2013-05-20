@@ -1,5 +1,3 @@
-#include "memory.h"
-#include "cpu.h"
 #include "app.h"
 #include "presenter.h"
 

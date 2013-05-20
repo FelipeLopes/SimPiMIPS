@@ -1,7 +1,5 @@
-#include "main_window.h"
-#include "cpu.h"
 #include "presenter.h"
-#include "file_parser.h"
+#include "../util/file_parser.h"
 
 Presenter::Presenter():
     mainWindow(new MainWindow(this)),

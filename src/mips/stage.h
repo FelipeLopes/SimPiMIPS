@@ -1,7 +1,7 @@
 #ifndef STAGE_H_
 #define STAGE_H_
 
-#include "typedefs.h"
+#include "../util/typedefs.h"
 #include "memory.h"
 #include "register.h"
 

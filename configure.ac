@@ -1,15 +1,16 @@
-#                                               -*- Autoconf -*-
+# -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.68])
 AC_INIT([FULL-PACKAGE-NAME], [VERSION], [BUG-REPORT-ADDRESS])
 AM_INIT_AUTOMAKE(SimPiMIPS,0.1)
-AC_CONFIG_SRCDIR([file_parser.cpp])
+AC_CONFIG_SRCDIR([src])
 AC_CONFIG_HEADERS([config.h])
 
 # Checks for programs.
 AC_PROG_CXX
 AC_PROG_CC
+AC_PROG_RANLIB
 
 # Checks for libraries.
 m4_include(wxwin.m4)
@@ -33,6 +34,10 @@ CXXFLAGS="$CXXFLAGS $WX_CXXFLAGS_ONLY"
 CFLAGS="$CFLAGS $WX_CFLAGS_ONLY"
 LIBS="$LIBS $WX_LIBS"
 
+SIMPIMIPS_LIBS="src/gui/lib_simpimips_gui.a src/mips/lib_simpimips_mips.a src/util/lib_simpimips_util.a"
+AC_SUBST(SIMPIMIPS_LIBS)
+ 
+
 # Checks for header files.
 AC_CHECK_HEADERS([stdint.h])
 
@@ -45,5 +50,4 @@ AC_TYPE_UINT32_T
 # Checks for library functions.
 AC_CHECK_FUNCS([memset])
 
-AC_CONFIG_FILES([Makefile])
-AC_OUTPUT
+AC_OUTPUT(Makefile src/Makefile src/gui/Makefile src/mips/Makefile src/util/Makefile)

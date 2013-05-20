@@ -2,7 +2,7 @@
 #define REGISTER_H_
 
 #include <cstring>
-#include "typedefs.h"
+#include "../util/typedefs.h"
 
 class Register{
 private:

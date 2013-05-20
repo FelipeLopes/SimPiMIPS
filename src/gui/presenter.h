@@ -3,9 +3,9 @@
 
 #include <vector>
 #include <string>
-#include "typedefs.h"
+#include "../util/typedefs.h"
+#include "../mips/cpu.h"
 #include "main_window.h"
-#include "cpu.h"
 
 class Presenter{
 public:

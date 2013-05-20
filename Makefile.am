@@ -1,3 +1,6 @@
-bin_PROGRAMS=simpimips
-simpimips_SOURCES=app.cpp cpu.cpp display_grid.cpp file_parser.cpp \
-                main_window.cpp memory.cpp presenter.cpp register.cpp stage.cpp
+AUTOMAKE_OPTIONS = foreign
+SUBDIRS = src
+bin_PROGRAMS = simpimips
+simpimips_SOURCES = 
+simpimips_LDADD = @SIMPIMIPS_LIBS@
+simpimips_DEPENDENCIES = @SIMPIMIPS_LIBS@

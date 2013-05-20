@@ -7,7 +7,7 @@
 #include <string>
 #include <wx/wx.h>
 #include "typedefs.h"
-#include "memory.h"
+#include "../mips/memory.h"
 
 int parseInstFile(const wxString& filename, Memory* memory,
 					std::vector<std::string>& instDesc);

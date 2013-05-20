@@ -5,7 +5,7 @@
 #include <deque>
 #include <utility>
 #include <map>
-#include "typedefs.h"
+#include "../util/typedefs.h"
 #include "stage.h"
 
 class CPU{
