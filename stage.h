@@ -4,7 +4,6 @@
 #include "typedefs.h"
 #include "memory.h"
 #include "register.h"
-#include "cpu.h"
 
 class CPU;
 
@@ -14,7 +13,7 @@ public:
 		STATE_OUT_OF_PROGRAM = -2,
 		STATE_STALL = -1
 	};
-	Stage(CPU* cpu);
+	explicit Stage(CPU* cpu);
 	int getState();
 	virtual ~Stage();
 	virtual void exec() = 0;

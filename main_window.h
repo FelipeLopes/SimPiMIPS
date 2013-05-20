@@ -1,26 +1,29 @@
 #ifndef MAIN_WINDOW_H_
 #define MAIN_WINDOW_H_
 
+#include <vector>
+#include <string>
 #include <wx/wx.h>
 #include "display_grid.h"
-#include "presenter.h"
+
+class CPU;
+class Presenter;
 
 class MainWindow: public wxFrame{
 public:
-	MainWindow(Presenter* presenter);
-	void init();
+	explicit MainWindow(Presenter* presenter);
 	void populateWindow(CPU* cpu,std::vector<std::string>& instDesc);
-	DisplayGrid *pipelineDisplay,*registerDisplay,*miscDisplay,*accessDisplay;
-	wxTextCtrl *inputFileBox,*instFileBox,*clocksBox;
-	wxStaticText *cpuStatusLabel;
-	wxCheckBox *useBypassingCheckBox;
+	DisplayGrid pipelineDisplay,registerDisplay,miscDisplay,accessDisplay;
+	wxTextCtrl inputFileBox,instFileBox,clocksBox;
+	wxStaticText cpuStatusLabel;
+	wxCheckBox useBypassingCheckBox;
 	virtual ~MainWindow();
 protected:
 	Presenter* presenter;
-	wxButton *nextStepButton,*advanceButton,*inputFileBrowseButton,
-			 *instFileBrowseButton,*initButton,*dumpOutputButton;
-	wxStaticText *pipelineDisplayLabel,*registerDisplayLabel,*miscDisplayLabel,
-				 *accessDisplayLabel,*inputFileLabel,*instFileLabel,*clocksLabel;
+	wxButton nextStepButton,advanceButton,inputFileBrowseButton,
+			 instFileBrowseButton,initButton,dumpOutputButton;
+	wxStaticText pipelineDisplayLabel,registerDisplayLabel,miscDisplayLabel,
+				 accessDisplayLabel,inputFileLabel,instFileLabel,clocksLabel;
 	void onClickNextStep(wxCommandEvent& event);
 	void onClickAdvance(wxCommandEvent& event);
 	void onClickInputFileBrowse(wxCommandEvent& event);
@@ -38,7 +41,5 @@ protected:
 	};
 	DECLARE_EVENT_TABLE()
 };
-
-
 
 #endif /* MAIN_WINDOW_H_ */

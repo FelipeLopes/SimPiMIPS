@@ -8,13 +8,6 @@
 #include "typedefs.h"
 #include "stage.h"
 
-class Stage;
-class IF;
-class IDRF;
-class EX;
-class DEM;
-class WB;
-
 class CPU{
 	enum WriteType{
 		REGISTER_WRITE,
@@ -36,9 +29,8 @@ class CPU{
 public:
 	Register* reg;
 	Memory *instMem, *dataMem;
-	explicit CPU(Register* reg, Memory* instMem, Memory* dataMem,
-			bool usesBypassing, int progSize);
-	~CPU();
+	CPU(Register* reg, Memory* instMem, Memory* dataMem,
+        bool usesBypassing, int progSize);
 	int getCurrentClock();
 	int getNumInstructions();
 	void exec();
@@ -60,12 +52,12 @@ private:
 	bool executionFinished;
 	std::deque<std::pair<std::pair<std::pair<u32,char>,u32>,int> > accessQueue;
 	std::pair<int,WriteType> dirtyRegs[4];
+	IF iF;
+	IDRF idrf;
+	EX ex;
+	DEM dem;
+	WB wb;
 	Stage* pipeline[5];
-	IF* iF;
-	IDRF* idrf;
-	EX* ex;
-	DEM* dem;
-	WB* wb;
 	int currentClock, numInstructions;
 
 	void writeMemory(u32 addr, u32 val);

@@ -4,22 +4,19 @@
 
 CPU::CPU(Register* reg, Memory* instMem, Memory* dataMem, bool usesBypassing, int progSize):
 		reg(reg),instMem(instMem),dataMem(dataMem),
-		usesBypassing(usesBypassing),progSize(progSize){
+		usesBypassing(usesBypassing),progSize(progSize),
+		iF(this),idrf(this),ex(this),dem(this),wb(this){
 	currentClock = 0;
 	numInstructions = 0;
 	executionFinished = false;
 
-	pipeline[0] = iF = new IF(this);
-	pipeline[1] = idrf = new IDRF(this);
-	pipeline[2] = ex = new EX(this);
-	pipeline[3] = dem = new DEM(this);
-	pipeline[4] = wb = new WB(this);
+	pipeline[0] = &iF;
+	pipeline[1] = &idrf;
+	pipeline[2] = &ex;
+	pipeline[3] = &dem;
+	pipeline[4] = &wb;
 
 	for (int i=0; i<4; i++) dirtyRegs[i].first=-2;
-}
-
-CPU::~CPU(){
-	for (int i=0; i<5; i++) delete pipeline[i];
 }
 
 void CPU::setRegDirty(int num, WriteType writeType){
@@ -36,8 +33,8 @@ bool CPU::isRegDirty(int num){
 
 u32 CPU::getReg(int num){
 	if (!usesBypassing) return reg->read(num);
-	if (dirtyRegs[1].first==num) return ex->result;
-	if (dirtyRegs[2].first==num) return dem->result;
+	if (dirtyRegs[1].first==num) return ex.result;
+	if (dirtyRegs[2].first==num) return dem.result;
 	return reg->read(num);
 }
 
@@ -56,8 +53,8 @@ bool CPU::isPcDirty(){
 
 u32 CPU::getPc(){
 	if (!usesBypassing) return reg->readPC();
-	if (usesBypassing && dirtyRegs[1].first==-1) return ex->result;
-	if (usesBypassing && dirtyRegs[2].first==-1) return dem->result;
+	if (usesBypassing && dirtyRegs[1].first==-1) return ex.result;
+	if (usesBypassing && dirtyRegs[2].first==-1) return dem.result;
 	return reg->readPC();
 }
 

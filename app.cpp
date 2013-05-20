@@ -1,9 +1,7 @@
-#include <cstdio>
-
 #include "memory.h"
 #include "cpu.h"
 #include "app.h"
-#include "main_window.h"
+#include "presenter.h"
 
 IMPLEMENT_APP(App);
 

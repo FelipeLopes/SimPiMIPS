@@ -7,22 +7,22 @@
 #include "main_window.h"
 #include "cpu.h"
 
-class MainWindow;
-
 class Presenter{
 public:
 	Presenter();
+	~Presenter();
 	void advanceCPU(int n);
 	wxString getFilePath();
 	void initializeCPU();
 	void dumpOutput();
 	MainWindow* getMainWindow();
 private:
+    void cleanUp();
 	std::vector<std::string> instDesc;
-	Memory *instMem,*dataMem;
-	Register *reg;
 	MainWindow* mainWindow;
 	CPU* cpu;
+	Memory *instMem,*dataMem;
+	Register* reg;
 };
 
 

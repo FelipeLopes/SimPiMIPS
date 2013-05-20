@@ -1,14 +1,23 @@
-#include <cstdio>
 #include "main_window.h"
 #include "cpu.h"
 #include "presenter.h"
 #include "file_parser.h"
 
-Presenter::Presenter(){
-	cpu = NULL;
-	mainWindow = new MainWindow(this);
-	mainWindow->init();
+Presenter::Presenter():
+    mainWindow(new MainWindow(this)),
+    cpu(NULL),instMem(NULL),dataMem(NULL),reg(NULL){
 	mainWindow->Show(true);
+}
+
+Presenter::~Presenter(){
+    cleanUp();
+}
+
+void Presenter::cleanUp(){
+    delete cpu;
+    delete instMem;
+    delete dataMem;
+    delete reg;
 }
 
 MainWindow* Presenter::getMainWindow(){
@@ -22,8 +31,8 @@ void Presenter::advanceCPU(int n){
 	}
 	for (int i=0; i<n; i++) cpu->exec();
 	mainWindow->populateWindow(cpu,instDesc);
-	if (cpu->isExecutionFinished()) mainWindow->cpuStatusLabel->SetLabel(_("Execution status:\nFinished"));
-	else mainWindow->cpuStatusLabel->SetLabel(_("Execution status:\nExecuting"));
+	if (cpu->isExecutionFinished()) mainWindow->cpuStatusLabel.SetLabel(_("Execution status:\nFinished"));
+	else mainWindow->cpuStatusLabel.SetLabel(_("Execution status:\nExecuting"));
 }
 
 wxString Presenter::getFilePath(){
@@ -35,25 +44,26 @@ wxString Presenter::getFilePath(){
 }
 
 void Presenter::initializeCPU(){
+    cleanUp();
 	instMem = new Memory;
 	dataMem = new Memory;
 	reg = new Register;
-	int sizeProg = parseInstFile(mainWindow->instFileBox->GetLineText(0),instMem,instDesc);
+	int sizeProg = parseInstFile(mainWindow->instFileBox.GetLineText(0),instMem,instDesc);
 	if(sizeProg==0){
 		wxMessageBox(_("Instruction file doesn't exist or has the wrong format.\n"
 						"(Last lines with whitespace?)"),_("OMFG Error!"),wxICON_ERROR);
 		return;
 	}
-	if (!parseInputFile(mainWindow->inputFileBox->GetLineText(0),dataMem)){
+	if (!parseInputFile(mainWindow->inputFileBox.GetLineText(0),dataMem)){
 		wxMessageBox(_("Input file doesn't exist or has the wrong format.\n"),
 					_("OMFG Error!"),wxICON_ERROR);
 		return;
 	}
 	cpu = new CPU(reg,instMem,dataMem,
-			mainWindow->useBypassingCheckBox->GetValue(),
+			mainWindow->useBypassingCheckBox.GetValue(),
 			sizeProg);
 	mainWindow->populateWindow(cpu,instDesc);
-	mainWindow->cpuStatusLabel->SetLabel(_("Execution status:\nCPU ready"));
+	mainWindow->cpuStatusLabel.SetLabel(_("Execution status:\nCPU ready"));
 }
 
 void Presenter::dumpOutput(){
